@@ -35,4 +35,10 @@ After Fastboot is up, connect with the board's OTG slot (USB C-type) and flash w
 
 The rest of the images are firmware ones and they are pulled from `stock-images/`. Power down the board and put the DIP to the normal boot positions. (Auto Power: **ON**, Boot Mode: **OFF**, Ext Boot: **OFF**) Power it on to check whether it boots. Depending on your use case, check whether your board outputs to serial, the monitor, or both.
 
-Depending on the Fastboot software installed on your board, the partition table might not get properly flashed, causing potential problems. If your board requires recovery, then power the board off, put the DIP to the recovery positions (Auto Power: **ON**, Boot Mode: **ON**, Ext Boot: **OFF**), and then power it again. Then start over by running `recovery.py` instead. This will rinse the board's low level firmware and allow the partition table of the board to be flashed.
+Depending on the Fastboot software installed on your board, the partition table might not get properly flashed, causing potential problems. If your board requires recovery, then power the board off, put the DIP to the recovery positions (Auto Power: **ON**, Boot Mode: **ON**, Ext Boot: **OFF**), and then power it again. Start over by flashing old recovery images from the submodule `tools-images-hikey960` (or you can get it directly [here](https://github.com/96boards-hikey/tools-images-hikey960)) by the following command:
+
+```
+# ./hikey_idt -c config -p [RECOVERY TTY]
+```
+
+**DO NOT RUN ANY OF THE SHELL SCRIPTS THERE**, as they will overwrite the partition table! Then try flashing the partition table again, and continue flashing rest of the images

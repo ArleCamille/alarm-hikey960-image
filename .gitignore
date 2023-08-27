@@ -6,4 +6,8 @@ ptable.log
 *.tar.gz
 *.zip
 *.dtb
-recovery
+config
+hikey_idt
+hisi-sec_usb_xloader.img
+hisi-sec_uce_boot.img
+recovery.bin
