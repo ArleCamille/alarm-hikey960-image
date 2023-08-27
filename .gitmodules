@@ -1,0 +1,9 @@
+[submodule "packages/linux-hikey960"]
+	path = packages/linux-hikey960
+	url = https://github.com/ArleCamille/linux-hikey960.git
+[submodule "packages/mali-kbase"]
+	path = packages/mali-kbase
+	url = https://github.com/ArleCamille/mali-kbase.git
+[submodule "packages/mali-hikey960-wayland"]
+	path = packages/mali-hikey960-wayland
+	url = https://github.com/ArleCamille/mali-hikey960-wayland.git

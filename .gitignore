@@ -1,1 +1,6 @@
 *.img
+!stock-images/*.img
+*.simg
+ptable.log
+*.tar.gz
+*.zip
