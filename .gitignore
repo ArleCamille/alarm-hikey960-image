@@ -1,6 +1,9 @@
 *.img
 !stock-images/*.img
+!hi3660-hikey960.dtb.img
 *.simg
 ptable.log
 *.tar.gz
 *.zip
+*.dtb
+recovery

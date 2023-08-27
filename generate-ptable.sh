@@ -63,7 +63,7 @@ case ${DEVICE_TYPE} in
 		sgdisk -n 5:0:+256M -t 5:0700 -u 5:10cc3268-05f0-4db2-aa00-707361427fc8 -c 5:"cache" ${TEMP_FILE}
 		#[6: fw_lpm3: 288M-289M]
 		sgdisk -n 6:0:+1M -t 6:0700 -u 6:5d8481d4-c170-4aa8-9438-8743c73ea8f5 -c 6:"fw_lpm3" ${TEMP_FILE}
-		#[7: boot: 289M-353M]
+		#[7: boot: 289M-353M, ESP]
 		sgdisk -n 7:0:+64M -t 7:EF00 -u 7:d3340696-9b95-4c64-8df6-e6d4548fba41 -c 7:"boot" ${TEMP_FILE}
 		#[8: dts: 353M-369M]
 		sgdisk -n 8:0:+16M -t 8:0700 -u 8:6e53b0bb-fa7e-4206-b607-5ae699e9f066 -c 8:"dts" ${TEMP_FILE}
@@ -71,8 +71,8 @@ case ${DEVICE_TYPE} in
 		sgdisk -n 9:0:+2M -t 9:0700 -u 9:f1e126a6-ceef-45c1-aace-29f33ac9cf13 -c 9:"trustfirmware" ${TEMP_FILE}
 		#[10: system: 371M-5059M]
 		sgdisk -n 10:0:+4688M -t 10:8300 -u 10:c3e50923-fb85-4153-b925-759614d4dfcd -c 10:"system" ${TEMP_FILE}
-		#[11: vendor: 5059M-5843M]
-		sgdisk -n 11:0:+784M -t 11:0700 -u 11:919d7080-d71a-4ae1-9227-e4585210c837 -c 11:"vendor" ${TEMP_FILE}
+		#[11: vendor: 5059M-5843M, XBOOTLDR]
+		sgdisk -n 11:0:+784M -t 11:EA00 -u 11:919d7080-d71a-4ae1-9227-e4585210c837 -c 11:"vendor" ${TEMP_FILE}
 		#[12: reserved: 5843M-5844M]
 		sgdisk -n 12:0:+1M -t 12:0700 -u 12:611eac6b-bc42-4d72-90ac-418569c8e9b8 -c 12:"reserved" ${TEMP_FILE}
 		#[13: userdata: 5844M-End]
@@ -80,10 +80,16 @@ case ${DEVICE_TYPE} in
 		;;
 esac
 
+# print out the partition table before deleting the scratch file
+echo 'Printing the partition table...'
+fdisk -l ${TEMP_FILE}
+echo 'Also outputting to ptable.log'
+fdisk -l ${TEMP_FILE} > ptable.log
+
 # get the primary partition table
 dd if=${TEMP_FILE} of=prm_ptable.img bs=${SECTOR_SIZE} count=${PRIMARY_SECTORS}
 
 BK_PTABLE_LBA=$(expr ${SECTOR_NUMBER} - ${SECONDARY_SECTORS})
 dd if=${TEMP_FILE} of=sec_ptable.img skip=${BK_PTABLE_LBA} bs=${SECTOR_SIZE} count=${SECONDARY_SECTORS}
 
-# rm -f ${TEMP_FILE}
+rm -f ${TEMP_FILE}
