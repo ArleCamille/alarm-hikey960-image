@@ -64,12 +64,12 @@ case ${DEVICE_TYPE} in
 		sgdisk -n 3:0:+6M -t 3:0700 -u 3:e2f5e2a9-c9b7-4089-9859-4498f1d3ef7e -c 3:"nvme" ${LOOP_DEVICE}
 		#[4: fip: 20M-32M]
 		sgdisk -n 4:0:+12M -t 3:0700 -u 4:dc1a888e-f17c-4964-92d6-f8fcc402ed8b -c 4:"fip" ${LOOP_DEVICE}
-		#[5: cache: 32M-288M. Use this for ESP/boot instead]
-		sgdisk -n 5:0:+256M -t 5:EF00 -u 5:10cc3268-05f0-4db2-aa00-707361427fc8 -c 5:"cache" ${LOOP_DEVICE}
+		#[5: cache: 32M-288M (Mark as Linux swap)]
+		sgdisk -n 5:0:+256M -t 5:8200 -u 5:10cc3268-05f0-4db2-aa00-707361427fc8 -c 5:"cache" ${LOOP_DEVICE}
 		#[6: fw_lpm3: 288M-289M]
 		sgdisk -n 6:0:+1M -t 6:0700 -u 6:5d8481d4-c170-4aa8-9438-8743c73ea8f5 -c 6:"fw_lpm3" ${LOOP_DEVICE}
-		#[7: boot: 289M-353M. Obsolete in favor of cache]
-		sgdisk -n 7:0:+64M -t 7:0700 -u 7:d3340696-9b95-4c64-8df6-e6d4548fba41 -c 7:"boot" ${LOOP_DEVICE}
+		#[7: boot: 289M-353M]
+		sgdisk -n 7:0:+64M -t 7:EF00 -u 7:d3340696-9b95-4c64-8df6-e6d4548fba41 -c 7:"boot" ${LOOP_DEVICE}
 		#[8: dts: 353M-369M]
 		sgdisk -n 8:0:+16M -t 8:0700 -u 8:6e53b0bb-fa7e-4206-b607-5ae699e9f066 -c 8:"dts" ${LOOP_DEVICE}
 		#[9: trustfirmware: 369M-371M]

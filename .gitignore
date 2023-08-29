@@ -4,6 +4,7 @@
 *.simg
 ptable.log
 *.tar.gz
+!efi.img.gz
 *.zip
 *.dtb
 config

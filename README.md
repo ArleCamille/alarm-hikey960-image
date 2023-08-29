@@ -5,9 +5,9 @@ With `sgdisk` installed, run `generate-ptable.sh` with `DEVICE_TYPE` and `SECTOR
 This would be time-consuming because it uses `dd`, not `fallocate`. After the process, the script will output the partition table to both the console and the text file `ptable.log` for reference.
 
 ## Creating the disk image
-HiKey partition layout requires many garbage partitions. Although not all of them could be salvaged, we will use at least some of them for our use.
+HiKey partition layout requires many garbage partitions. How you will salvage them will differ for each, but I use the following layout, and thus the `flash-all.sh` file is written as such:
 
-- `boot` (the 7th partition) will be used only for EFI system partition. Its space is too limited to actually contain DTBs and GRUB modules.
+- `boot` (the 7th partition) will be used only for EFI system partition. Its space is too limited to actually contain DTBs and the uncompressed kernel.
 - `vendor` (the 11th partition) will act as the actual boot partition.
 - `system` (the 10th partition) is too small to act as the actual root, while being too large not to use. Thus we will use it as the `/var` partition.
 - Obviously, `userdata` (the last partition), the largest among all the partitions, will be used as our root partition.
@@ -15,7 +15,37 @@ HiKey partition layout requires many garbage partitions. Although not all of the
 Therefore, according to the partition table dumped in the preceding command, create images for `boot` (ESP), `vendor` (`/boot`), `system` (`/var`) and `userdata` (root). Special care must be added for the ESP that it must be formatted with `mformat` (from `mtools`) rather than the standard `mkfs.vfat` due to its very small size. (Use `mformat -i (image name) -n 64 -h 255 -T 131072 -v "BOOT" -C`.) Format the rest of the images according to your file system of choice. (I recommend `ext4` for `/boot`.)
 
 ## Filling the partitions
-Mount the disk images on an appropriate mount point. Untar a generic AArch64 Arch Linux ARM image to it. Install `qemu-user-static` and `qemu-user-static-binfmt` on the host system, and copy `qemu-aarch64-static` into `(mount point root)/usr/bin/`. You can now `arch-chroot` into the root. Populate keyrings and sync. Then remove the generic kernel (`linux-aarch64`) from the system because we will replace it with our own. Install systemd-boot to the EFI partition (`bootctl --esp-path=/efi --boot-path=/boot --no-variables install`).
+Mount the disk images on an appropriate mount point. Untar a generic AArch64 Arch Linux ARM image to it. Install `qemu-user-static` and `qemu-user-static-binfmt` on the host system, and copy `qemu-aarch64-static` into `(mount point root)/usr/bin/`. You can now `arch-chroot` into the root. Populate keyrings and sync. Then remove the generic kernel (`linux-aarch64`) from the system because we will replace it with our own.
+
+For the EFI system partition, mount it during the installation process, but don't leave it in the `/etc/fstab` file. This causes the notorious logical sector size error. Install GRUB, and generate the GRUB image capable of booting from your own `/boot` path by doing the following:
+- Create the `grub.config` file with the following content.
+ - For integrated `/` and `/boot`:
+```
+search.fs_uuid (your rootfs UUID here) root
+set prefix=($root)/boot/grub
+configfile $prefix/grub.cfg
+```
+ - For a separate `/boot` partition:
+```
+search.fs_uuid (your /boot UUID here) root
+set prefix=($root)/grub
+configfile $prefix/grub.cfg
+```
+- Generate `grubaa64.efi` by the following command:
+```
+grub-mkimage --config grub.config \
+    --dtb (path to hi3660-hikey960.dtb) \
+    --output=(ESP)/grubaa64.efi \
+    --format=arm64-efi \
+    --prefix="/boot/grub" \
+    boot btrfs chain configfile echo efinet eval ext2 fat font gettext gfxterm gzio \
+    help linux loadenv lsefi normal part_gpt part_msdos read regexp search search_fs_file \
+    search_fs_uuuid search_label terminal terminfo test tftp time
+```
+- Copy the binary to `(ESP)/EFI/BOOT/{BOOTAA64,grubaa64}.EFI`.
+Or, if you use integrated `/boot` like me, you can just use my `efi.img` which is uploaded compressed. ESP will be rarely changed unless there is a major GRUB update, and should it happen, it is advisable to update it from your host system. Also copy `fastboot.efi` from `stock-images/` to `(ESP)/EFI/BOOT/fastboot.efi`.
+
+Tailor the image as you want, and then follow the [post-installation guide](https://wiki.archlinux.org/title/Installation_guide) from the Arch Linux wiki.
 
 ## Prepare images
 Convert applicable images (images with Linux filesystems like `ext4` or `btrfs`) with the tool `img2simg` included in the `android-tools` package. Then convert the DTB packed with your kernel with the command `mkdtimg`. (Usage: `mkdtimg -d[INPUT DTB] -o[OUTPUT IMAGE]`) If applicable, either modify your images' file names or the file names from `flash-all.sh`.
